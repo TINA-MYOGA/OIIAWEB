@@ -16,7 +16,15 @@
 
   <div id="cat-container">
     <img id="wait-cat" class="cat-media" src="wait-cat.png" alt="">
-    <video id="spin-cat" class="cat-media hidden" src="oiia-cat.webm" muted playsinline preload="auto"></video>
+    
+    <!-- 中央の回転する猫（デバイスに応じて最適なフォーマットを自動選択します） -->
+    <video id="spin-cat" class="cat-media hidden" muted playsinline preload="auto" loop>
+      <!-- ① iPhone / iOS / Mac (Safari) 用：HEVC with Alpha (.mov) -->
+      <source src="oiia-cat.mov" type="video/mp4; codecs=hvc1">
+      
+      <!-- ② Windows / Android / その他ブラウザ用：WebM (.webm) -->
+      <source src="oiia-cat.webm" type="video/webm">
+    </video>
   </div>
 
   <script src="script.js"></script>
