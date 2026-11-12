@@ -3,6 +3,7 @@ const spinCat = document.getElementById('spin-cat');
 const modeBtn = document.getElementById('mode-btn');
 const stopBtn = document.getElementById('stop-btn');
 const uiPanel = document.getElementById('ui-panel');
+const catContainer = document.getElementById('cat-container');
 
 // 音声の準備
 const bgm = new Audio('oiia-song.mp3');
@@ -25,7 +26,24 @@ let lastClickTime = 0;
 let raveTapCount = 0; // 10秒間のタップ蓄積用
 
 // ==========================================
-// ★ 秒数や回数などの設定（ここを変更して調整できます！）
+// ★ iPhone/iOSの音声ブロック対策（最初のタッチで全音声をアンロック）
+// ==========================================
+function unlockAudioOnFirstTouch() {
+  const sounds = [bgm, uSound, festivalSound];
+  sounds.forEach(sound => {
+    sound.play().then(() => {
+      sound.pause();
+      sound.currentTime = 0;
+    }).catch(err => {});
+  });
+  window.removeEventListener('touchstart', unlockAudioOnFirstTouch);
+  window.removeEventListener('click', unlockAudioOnFirstTouch);
+}
+window.addEventListener('touchstart', unlockAudioOnFirstTouch, { once: true });
+window.addEventListener('click', unlockAudioOnFirstTouch, { once: true });
+
+// ==========================================
+// ★ 秒数や回数などの設定
 // ==========================================
 const CONFIG = {
   tapTimeLimitSec: 10,       // 10秒間で
@@ -34,7 +52,7 @@ const CONFIG = {
   wait2Sec: 2000,            // 次の2秒待機 (ms)
   smoothColorInterval: 3000, // 背景色が滑らかに変わる間隔 (ms)
   repeatCount: 3,            // 繰り返し回数
-  randomCatDurationSec: 0.8    // 猫が縦横無尽に動く秒数
+  randomCatDurationSec: 0.8  // 猫が縦横無尽に動く秒数
 };
 
 const bgColors = ['#111111', '#1a1a2e', '#2a1a4a', '#1a2e1a', '#2e1a1a'];
@@ -106,7 +124,6 @@ function checkRaveEasterEgg() {
   if (isRaving || currentMode !== 'metronome') return;
   const now = performance.now();
 
-  // 10秒以上間が空いたらリセット
   if (now - lastClickTime > CONFIG.tapTimeLimitSec * 1000) {
     raveTapCount = 0;
   }
@@ -124,7 +141,8 @@ async function startEasterEggSequence() {
   raveTapCount = 0;
   bgm.pause();
   bgm.currentTime = 0;
-  // 1. 背景を黒に、操作不可能に（ボタンを隠す）
+  
+  // 1. 背景を黒に、操作を隠す
   document.body.style.backgroundColor = '#000000';
   uiPanel.classList.add('hidden');
 
@@ -138,18 +156,18 @@ async function startEasterEggSequence() {
   // 3. 2秒待機
   await new Promise(r => setTimeout(r, CONFIG.wait1Sec));
 
-  // 4. oiia-song.mp3を一度だけ再生 ＆ oiia-cat.webmを再生
+  // 4. oiia-song.mp3を一度だけ再生 ＆ 動画再生
   bgm.playbackRate = 1.0;
   spinCat.playbackRate = 1.0;
-  bgm.loop = false; // 一度だけ
+  bgm.loop = false;
   bgm.currentTime = 0;
   bgm.play().catch(err => {});
+  
   waitCat.classList.add('hidden');
   spinCat.classList.remove('hidden');
   spinCat.currentTime = 0;
   spinCat.play().catch(err => {});
 
-  // 曲が終わるか、あるいは一定時間待機 (ここでは音楽の長さに合わせるか適宜調整)
   await new Promise(r => setTimeout(r, 2000)); 
 
   // 5. wait-catにする
@@ -160,7 +178,7 @@ async function startEasterEggSequence() {
   // 6. 2秒待機
   await new Promise(r => setTimeout(r, CONFIG.wait2Sec));
 
-  // 7. OIIA-OIIA.mp3再生 ＆ 背景の色を滑らかに変える ＆ oiia-cat.webm再生
+  // 7. OIIA-OIIA.mp3再生 ＆ 背景のカラー変化
   festivalSound.loop = true;
   festivalSound.currentTime = 0;
   festivalSound.play().catch(err => {});
@@ -195,22 +213,17 @@ async function startEasterEggSequence() {
     document.body.style.backgroundColor = colorList[colorIdx];
   }, CONFIG.smoothColorInterval);
 
+  // 中央の猫を動かす
+  catContainer.style.transition = 'transform 0.3s ease-out';
+  const moveInterval = setInterval(() => {
+    const maxX = (window.innerWidth / 2) - 100;
+    const maxY = (window.innerHeight / 2) - 100;
+    const randomX = (Math.random() * 2 - 1) * maxX;
+    const randomY = (Math.random() * 2 - 1) * maxY;
+    const randomRotate = (Math.random() * 2 - 1) * 45;
 
-const catContainer = document.getElementById('cat-container');
-
-// ① 動かし始める直前に、JSから直接transition（滑らか移動）を設定する
-catContainer.style.transition = 'transform 0.3s ease-out';
-
-const moveInterval = setInterval(() => {
-  const maxX = (window.innerWidth / 2) - 100;
-  const maxY = (window.innerHeight / 2) - 100;
-
-  const randomX = (Math.random() * 2 - 1) * maxX;
-  const randomY = (Math.random() * 2 - 1) * maxY;
-  const randomRotate = (Math.random() * 2 - 1) * 45;
-
-  catContainer.style.transform = `translate(${randomX}px, ${randomY}px) rotate(${randomRotate}deg)`;
-}, 300);
+    catContainer.style.transform = `translate(${randomX}px, ${randomY}px) rotate(${randomRotate}deg)`;
+  }, 300);
 
   await new Promise(r => setTimeout(r, 11000));
   clearInterval(moveInterval);
@@ -223,85 +236,80 @@ const moveInterval = setInterval(() => {
 
   await new Promise(r => setTimeout(r, 2000));
 
+  // --- 大量発生フェーズ ---
+  const activeCats = [];
 
-  // 1. 猫を大量に出現させる（例：15匹）
-const activeCats = [];
-const catCount = 35; // ← 増やしたい数に自由に変更OK
-for(let d = 0; d < 3; d++){
+  for (let d = 0; d < 3; d++) {
     waitCat.classList.add('hidden');
+    spinCat.classList.remove('hidden');
+    spinCat.currentTime = 0;
+    spinCat.play().catch(err => {});
+
+    const catCount = 35;
+    for (let c = 0; c < catCount; c++) {
+      const flyingImg = document.createElement('img');
+      flyingImg.src = 'oiia-cat.gif';
+      flyingImg.className = 'flying-cat';
+      
+      flyingImg.style.position = 'fixed';
+      flyingImg.style.width = '150px';
+      flyingImg.style.pointerEvents = 'none';
+      flyingImg.style.transition = 'all 0.3s ease-out';
+      flyingImg.style.zIndex = '9999';
+
+      flyingImg.style.left = Math.random() * (window.innerWidth - 150) + 'px';
+      flyingImg.style.top = Math.random() * (window.innerHeight - 150) + 'px';
+      
+      document.body.appendChild(flyingImg);
+      activeCats.push(flyingImg);
+      await new Promise(r => setTimeout(r, 50));
+    }
+
+    const moveTimer = setInterval(() => {
+      activeCats.forEach(cat => {
+        const randomX = Math.random() * (window.innerWidth - 150);
+        const randomY = Math.random() * (window.innerHeight - 150);
+        const randomRotate = (Math.random() * 2 - 1) * 45;
+
+        cat.style.left = randomX + 'px';
+        cat.style.top = randomY + 'px';
+        cat.style.transform = `rotate(${randomRotate}deg)`;
+      });
+    }, 20);
+
+    await new Promise(r => setTimeout(r, CONFIG.randomCatDurationSec * 1000));
+    clearInterval(moveTimer);
+
+    activeCats.forEach(cat => {
+      cat.src = 'wait-cat.png';
+    });
+    spinCat.pause();
+    spinCat.classList.add('hidden');
+    waitCat.classList.remove('hidden');
+
+    await new Promise(r => setTimeout(r, 500));
+
+    activeCats.forEach(cat => cat.remove());
+    activeCats.length = 0;
+  }
+
+  // ラスト（70匹）
+  waitCat.classList.add('hidden');
   spinCat.classList.remove('hidden');
-  spinCat.currentTime = 0; // 頭出し（必要に応じて）
+  spinCat.currentTime = 0;
   spinCat.play().catch(err => {});
-for (let c = 0; c < catCount; c++) {
-  const flyingImg = document.createElement('img');
-  flyingImg.src = 'oiia-cat.gif';
-  flyingImg.className = 'flying-cat';
-  
-  // CSSを触らずにJSだけで位置と滑らかな動きを設定
-  flyingImg.style.position = 'fixed';
-  flyingImg.style.width = '150px'; // 猫の大きさ（お好みで調整）
-  flyingImg.style.pointerEvents = 'none'; // タップの邪魔にならないようにする
-  flyingImg.style.transition = 'all 0.3s ease-out';
-  flyingImg.style.zIndex = '9999';
 
-  // 初期位置を画面内のランダムな場所に設定
-  flyingImg.style.left = Math.random() * (window.innerWidth - 150) + 'px';
-  flyingImg.style.top = Math.random() * (window.innerHeight - 150) + 'px';
-  
-  document.body.appendChild(flyingImg);
-  activeCats.push(flyingImg);
-  await new Promise(r => setTimeout(r, 50));
-}
-
-// 2. 縦横無尽に飛び回らせるタイマー
-const moveTimer = setInterval(() => {
-  activeCats.forEach(cat => {
-    const randomX = Math.random() * (window.innerWidth - 150);
-    const randomY = Math.random() * (window.innerHeight - 150);
-    const randomRotate = (Math.random() * 2 - 1) * 45;
-
-    cat.style.left = randomX + 'px';
-    cat.style.top = randomY + 'px';
-    cat.style.transform = `rotate(${randomRotate}deg)`;
-  });
-}, 20); // 0.3秒ごとに次の場所へ移動
-
-// 3. 指定した秒数だけ暴れさせる
-await new Promise(r => setTimeout(r, CONFIG.randomCatDurationSec * 1000));
-clearInterval(moveTimer);
-
-// 4. すべてを wait-cat.png（静止画）に一斉に切り替える！
-activeCats.forEach(cat => {
-  cat.src = 'wait-cat.png';
-});
-spinCat.pause();
-spinCat.classList.add('hidden');
-waitCat.classList.remove('hidden');
-
-// 5. 静止画の状態で少し待つ（例: 0.5秒）
-await new Promise(r => setTimeout(r, 500));
-
-// 6. 画面上の猫をすべて消す
-activeCats.forEach(cat => cat.remove());
-
-}
-waitCat.classList.add('hidden');
-spinCat.classList.remove('hidden');
-spinCat.currentTime = 0; // 頭出し（必要に応じて）
-spinCat.play().catch(err => {});
-for (let c = 0; c < 70; c++) {
+  for (let c = 0; c < 70; c++) {
     const flyingImg = document.createElement('img');
     flyingImg.src = 'oiia-cat.gif';
     flyingImg.className = 'flying-cat';
     
-    // CSSを触らずにJSだけで位置と滑らかな動きを設定
     flyingImg.style.position = 'fixed';
-    flyingImg.style.width = '150px'; // 猫の大きさ（お好みで調整）
-    flyingImg.style.pointerEvents = 'none'; // タップの邪魔にならないようにする
+    flyingImg.style.width = '150px';
+    flyingImg.style.pointerEvents = 'none';
     flyingImg.style.transition = 'all 0.3s ease-out';
     flyingImg.style.zIndex = '9999';
   
-    // 初期位置を画面内のランダムな場所に設定
     flyingImg.style.left = Math.random() * (window.innerWidth - 150) + 'px';
     flyingImg.style.top = Math.random() * (window.innerHeight - 150) + 'px';
     
@@ -309,9 +317,10 @@ for (let c = 0; c < 70; c++) {
     activeCats.push(flyingImg);
     await new Promise(r => setTimeout(r, 30));
   }
+
   // --- イースターエッグ終了時の処理 ---
   activeCats.forEach(cat => cat.remove());
-  document.querySelectorAll('.flying-cat').forEach(el => el.remove()); // 念のため残骸も消す
+  document.querySelectorAll('.flying-cat').forEach(el => el.remove());
 
   clearInterval(colorInterval);
   festivalSound.pause();
@@ -324,10 +333,6 @@ for (let c = 0; c < 70; c++) {
   modeBtn.classList.add('metronome-active');
   stopBtn.classList.add('hidden');
   stopCatAndMusic();
-
-  // ★追加：モードを「カチッと切り替えた時」と同じリセット・初期化処理をここに呼ぶ！
-  // （もしモード切り替え時に実行している共通の初期化関数があれば、それをここで実行します）
-  resetToNormalMode();
 }
 
 // モード切り替え
@@ -353,15 +358,9 @@ modeBtn.addEventListener('click', (e) => {
     stopCatAndMusic();
   }
 
-  // 1. 猫をすべて削除・片付ける
-activeCats.forEach(cat => cat.remove());
-
-// 2. 背景や音楽を元のメトロノームモードの状態に戻す
-document.body.style.backgroundColor = ''; // 色を元に戻す
-document.body.style.transition = '';
-
-// 3. ★ここが重要：通常モード時の猫のタップ（再生）イベントを再度有効化する
-initCatTapEvents();
+  document.querySelectorAll('.flying-cat').forEach(el => el.remove());
+  document.body.style.backgroundColor = '';
+  document.body.style.transition = '';
 });
 
 // 停止ボタン
@@ -387,14 +386,13 @@ function handleStart(e) {
     isPressing = true;
     playCatAndMusic(false);
   } else {
-    // AUTO (メトロノーム) モード時
-    checkRaveEasterEgg(); // 10秒間の素早いタップ判定
+    checkRaveEasterEgg();
 
     if (!isRaving) {
       if (!isMetroPlaying) {
         isMetroPlaying = true;
         playCatAndMusic(true);
-        stopBtn.classList.remove('hidden');
+        stopBtn.classList.add('hidden');
       }
       recordTap();
     }
