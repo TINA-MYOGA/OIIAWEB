@@ -2,17 +2,46 @@ body {
     margin: 0;
     height: 100vh;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: #1a1a2e;
-    color: #ffffff;
-    font-family: sans-serif;
+    background-color: #111111;
+    font-family: monospace;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
     overflow: hidden;
     cursor: pointer;
+    transition: background-color 1.5s ease; /* 色が滑らかに変わるように設定 */
+  }
+  
+  #ui-panel {
+    position: absolute;
+    top: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+  }
+  
+  button {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    font-family: monospace;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #222222;
+    border: 1px solid #444444;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  button:active {
+    background-color: #444444;
+  }
+  
+  #stop-btn {
+    background-color: #331111;
+    border-color: #662222;
+    color: #ff8888;
   }
   
   #cat-container {
@@ -21,6 +50,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
   }
   
   .cat-media {
@@ -29,19 +59,22 @@ body {
     object-fit: contain;
   }
   
+  #spin-cat {
+    transform: scale(2.5);
+    pointer-events: none;
+  }
+  
   .hidden {
     display: none !important;
   }
   
-  #status-text {
-    margin-top: 30px;
-    font-size: 1.4rem;
-    font-weight: bold;
-    letter-spacing: 0.05em;
-    text-align: center;
-  }
-  
-  .active-text {
-    color: #00ffcc;
-    text-shadow: 0 0 10px #00ffcc;
+  /* 縦横無尽に動く追加の猫用スタイル */
+  .flying-cat {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    pointer-events: none;
+    z-index: 50;
+    transition: transform 0.1s linear;
   }

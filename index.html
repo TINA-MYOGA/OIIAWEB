@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>OIIA CAT 回転アプリ</title>
+  <title>OIIA CAT</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div id="cat-container">
-    <!-- 待機状態（手を離しているとき）の静止画 -->
-    <img id="wait-cat" class="cat-media" src="wait-cat.png" alt="待機中の猫">
-    
-    <!-- 回転状態（長押ししているとき）の透過WebM動画 -->
-    <video id="spin-cat" class="cat-media hidden" src="oiia-cat.webm" muted playsinline preload="auto"></video>
+  <!-- 無骨なコントロールパネル -->
+  <div id="ui-panel">
+    <button id="mode-btn">MODE: HOLD</button>
+    <button id="stop-btn" class="hidden">STOP</button>
   </div>
 
-  <div id="status-text">画面を長押しして回す！</div>
+  <div id="cat-container">
+    <img id="wait-cat" class="cat-media" src="wait-cat.png" alt="">
+    <video id="spin-cat" class="cat-media hidden" src="oiia-cat.webm" muted playsinline preload="auto"></video>
+  </div>
 
   <script src="script.js"></script>
 </body>
