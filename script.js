@@ -1,38 +1,15 @@
-const cat = document.getElementById('cat');
+const waitCat = document.getElementById('wait-cat');
+const spinCat = document.getElementById('spin-cat');
 const statusText = document.getElementById('status-text');
-let audioCtx = null;
+
+// 音楽ファイルを読み込む（ループ設定）
+const bgm = new Audio('oiia-song.mp3');
+bgm.loop = true;
+
+// ★回転スピードの調整（1.0が等倍、遅くしたい場合は 0.8 や 0.5 などに調整できます）
+spinCat.playbackRate = 1.0;
+
 let isPressing = false;
-let soundTimer = null;
-
-// 「オイア（O-I-I-A）」風の電子音を鳴らす関数
-function playOiiaSound() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-
-  const notes = [330, 440, 440, 392]; // O-I-I-A の音程
-  let step = 0;
-
-  soundTimer = setInterval(() => {
-    if (!isPressing) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(notes[step % notes.length], audioCtx.currentTime);
-    
-    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
-    
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.09);
-    step++;
-  }, 100);
-}
 
 // 押し始めたときの処理
 function startSpin(e) {
@@ -40,11 +17,23 @@ function startSpin(e) {
   if (isPressing) return;
   isPressing = true;
 
-  cat.classList.add('spinning');
+  // 待機画像を隠し、回転WebM動画を表示する
+  waitCat.classList.add('hidden');
+  spinCat.classList.remove('hidden');
+
+  // 動画を前回の続きの位置から再生
+  spinCat.play().catch(err => {
+    console.log("動画の再生エラー:", err);
+  });
+
+  // 音楽を前回の続きの位置から再生
+  bgm.play().catch(err => {
+    console.log("音声の再生エラー:", err);
+  });
+
   statusText.textContent = 'O-I-I-A-I-O-I-I-I-A!!';
   statusText.classList.add('active-text');
   document.body.style.backgroundColor = '#2a1a4a';
-  playOiiaSound();
 }
 
 // 指・マウスを離したときの処理
@@ -52,12 +41,26 @@ function stopSpin() {
   if (!isPressing) return;
   isPressing = false;
 
-  cat.classList.remove('spinning');
+  // 動画を一時停止（現在のフレーム位置が保持される）
+  spinCat.pause();
+
+  // 回転動画を隠し、待機画像に戻す
+  spinCat.classList.add('hidden');
+  waitCat.classList.remove('hidden');
+
+  // 音楽を一時停止（再生位置は保持される）
+  bgm.pause();
+
   statusText.textContent = '画面を長押しして回す！';
   statusText.classList.remove('active-text');
   document.body.style.backgroundColor = '#1a1a2e';
-  clearInterval(soundTimer);
 }
+
+// 動画が最後までいったら自動で頭に戻してループさせる処理
+spinCat.addEventListener('ended', () => {
+  spinCat.currentTime = 0;
+  spinCat.play();
+});
 
 // パソコン（マウス）とスマホ（タッチ）の両方の操作に対応
 window.addEventListener('mousedown', startSpin);

@@ -9,27 +9,11 @@
 <body>
 
   <div id="cat-container">
-    <!-- ▼ 自分の画像（例: cat.png）を使う場合は、下の <svg> を消して <img id="cat" src="cat.png" alt="OIIA CAT"> に書き換えてください -->
-    <svg id="cat" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <!-- 耳 -->
-      <polygon points="45,75 60,25 90,60" fill="#a8a8a8" stroke="#333" stroke-width="4"/>
-      <polygon points="155,75 140,25 110,60" fill="#a8a8a8" stroke="#333" stroke-width="4"/>
-      <!-- 顔 -->
-      <ellipse cx="100" cy="115" rx="65" ry="55" fill="#c4c4c4" stroke="#333" stroke-width="4"/>
-      <!-- 目 -->
-      <circle cx="75" cy="105" r="10" fill="#222"/>
-      <circle cx="125" cy="105" r="10" fill="#222"/>
-      <circle cx="78" cy="102" r="3" fill="#fff"/>
-      <circle cx="128" cy="102" r="3" fill="#fff"/>
-      <!-- 鼻と口 -->
-      <polygon points="95,120 105,120 100,127" fill="#ff8da1"/>
-      <path d="M 88,133 Q 100,143 112,133" fill="none" stroke="#333" stroke-width="3" stroke-linecap="round"/>
-      <!-- ヒゲ -->
-      <line x1="30" y1="115" x2="60" y2="118" stroke="#333" stroke-width="2.5"/>
-      <line x1="30" y1="128" x2="60" y2="126" stroke="#333" stroke-width="2.5"/>
-      <line x1="170" y1="115" x2="140" y2="118" stroke="#333" stroke-width="2.5"/>
-      <line x1="170" y1="128" x2="140" y2="126" stroke="#333" stroke-width="2.5"/>
-    </svg>
+    <!-- 待機状態（手を離しているとき）の静止画 -->
+    <img id="wait-cat" class="cat-media" src="wait-cat.png" alt="待機中の猫">
+    
+    <!-- 回転状態（長押ししているとき）の透過WebM動画 -->
+    <video id="spin-cat" class="cat-media hidden" src="oiia-cat.webm" muted playsinline preload="auto"></video>
   </div>
 
   <div id="status-text">画面を長押しして回す！</div>
